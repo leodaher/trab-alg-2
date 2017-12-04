@@ -4,21 +4,20 @@
 
 
 int startBTree(bTree *bt, char* filename) {
-	bt->ordem = ORDEM ;
 
 	bt->bTFile = fopen(filename, "r") ;
+	bt->ordem = ORDEM ;
+
 	if (!bt->bTFile) {
-		//Arquivo da árvore não existe
 		bt->raiz = -1 ;
 		bt->nextRrn = 0 ;
-
 		bt->bTFile = fopen(filename, "w") ;
 		fclose(bt->bTFile) ;
-
 		return 0 ;
 	}
 
 	fseek(bt->bTFile, 0, SEEK_END) ;
+
 	if (ftell(bt->bTFile) == 0) {
 		bt->raiz = -1 ;
 		bt->nextRrn = 0 ;
@@ -26,16 +25,15 @@ int startBTree(bTree *bt, char* filename) {
 
 		return 0 ;
 	}
+
 	rewind(bt->bTFile) ;
-
 	fscanf(bt->bTFile, "%8d%8d", &bt->raiz, &bt->nextRrn) ;
-
 	fclose(bt->bTFile) ;
 
 	return 1 ;
 }
 
-void initBucket(bTree *bt, pagina *p) {
+void initPage(bTree *bt, pagina *p) {
 	p->cntChave = 0 ;
 	p->chaves = (chave *) malloc(sizeof(chave) * (bt->ordem - 1)) ;
 	p->filhos = (int *) malloc(sizeof(int) * bt->ordem) ;
