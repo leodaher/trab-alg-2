@@ -1,13 +1,3 @@
-/*  Trabalho 3 - Algoritimos e Estruturas de Dados II
- *
- *  Desenvolvedores:
- *    Guilherme Prearo
- *    Gustavo Nicolau Goncalves
- *    Pedro V. B. Jeronymo
- *
- *  (Compilador gcc 4.9.2)
- */
-
 #include "btree.h"
 
 #include <string.h>

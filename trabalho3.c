@@ -1,12 +1,3 @@
-/*  TRABALHO 2 DE ALGORITMOS E ESTRUTURAS DE DADOS II
-
-Integrantes:
-	Carlos Henrique de Oliveira Franco
-    Guilherme Brunassi Nogima
-    Joao Pedro Silva Mambrini Ruiz
-	Leonardo Akel Daher
- */
-
 #include "trabalho3.h"
 #include "btree.h"
 
