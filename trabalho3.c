@@ -60,13 +60,13 @@ static void print_reg(registro_t *reg) {
 		   reg->genero);
 }
 
-static void search_musica(FILE *fdata, bTree *bt)
+static void search_musica(FILE *fdata, bTree *bt, char* filename)
 {
 	int id ;
 	printf("Informe o id da música a ser pesquisada: ");
 	scanf("%d%*c", &id);
 
-	long offset = search(bt, id) ;
+	long offset = search(bt, id, filename) ;
 	if (offset == -1) {
 		printf("Música não existente!\n");
 		return ;
@@ -82,13 +82,13 @@ static void search_musica(FILE *fdata, bTree *bt)
 }
 
 
-static void insert_musica(FILE* fdata, bTree *bt)
+static void insert_musica(FILE* fdata, bTree *bt, char* filename)
 {
 	registro_t reg;
 	printf("\n\nInsira os dados da nova música\n");
 	printf("Id: ");
 	scanf("%d%*c", &reg.id);
-	if (search(bt, reg.id) != -1) {
+	if (search(bt, reg.id, filename) != -1) {
 		printf("Erro! Música existente!\n");
 		return ;
 	}
@@ -100,16 +100,16 @@ static void insert_musica(FILE* fdata, bTree *bt)
 	reg.genero[strlen(reg.genero)-1] = '\0';
 
 	long offset = insert_reg(&reg, fdata);
-	insert(bt, reg.id, offset) ;
+	insert(bt, reg.id, offset, filename) ;
 	printf("\n<Música inserida com sucesso>\n");
 }
 
-static void remove_musica(FILE* fdata, bTree *bt)
+static void remove_musica(FILE* fdata, bTree *bt, char* filename)
 {
 	printf("Indique o ID da música: ");
 	int id;
 	scanf("%d%*c", &id);
-	long offset = search(bt, id);
+	long offset = search(bt, id, filename);
 	if (offset == -1) {
 		printf("Música não encontrada!\n") ;
 		return ;
@@ -119,7 +119,65 @@ static void remove_musica(FILE* fdata, bTree *bt)
 }
 
 
-static int ui(FILE* fdata, bTree *bt)
+void create_index_read (FILE* fidx, bTree *bt, char *filename) {
+	registro_t reg;
+	char tamStr[4];
+	int i = 0;
+	
+	char c = fgetc(fidx);
+
+	if (c == EOF){
+		printf("Termino da leitura\n");
+		return;
+	}
+	long offset = ftell(fidx);
+	while (c != '|'){
+		tamStr[i] = c;
+		i++;
+		c = fgetc(fidx);
+	}
+	int tam = atoi(tamStr);
+
+	char *str = malloc(tam*sizeof(char));
+	fgets(str, tam, fidx);
+
+	char s[] = "|";
+	reg.id = atoi(strtok(str, s));
+	strcpy(reg.titulo, strtok(NULL, s));
+	strcpy(reg.genero, strtok(NULL, s));
+
+	printf("\n    tam = %d\n", tam);
+	printf("    id = %d\n    titulo = %s\n    genero = %s\n\n", reg.id, reg.titulo, reg.genero);
+
+	c = fgetc(fidx);
+	
+	insert(bt, reg.id, offset, "rola.idx");
+
+
+	create_index_read(fidx, bt, filename);
+	
+}
+
+void create_index () {
+	char filename[20];
+	printf("Insira o nome do arquivo: ");
+	scanf("%s", filename);
+	bTree btidx;
+
+	FILE *fidx = fopen(filename, "r");
+	
+	initBT(&btidx, "rola.idx");
+
+	create_index_read(fidx, &btidx, filename);
+	fclose(fidx);
+}
+
+
+
+
+
+
+static int ui(FILE* fdata, bTree *bt, char* filename)
 {
 	printf("\n\n::Bem-vindo ao T3 de Alg2::\n\n");
 	printf("Desenvolvedores:\n\tGuilherme Prearo\n\tGustavo N. Goncalves\n\tPedro V. B. Jeronymo\n\n\n");
@@ -135,16 +193,16 @@ static int ui(FILE* fdata, bTree *bt)
 		scanf("%d%*c", &op);
 		switch(op) {
 		case 1:
-			insert_musica(fdata, bt);
+			insert_musica(fdata, bt, filename);
 			break;
 		case 2:
-			remove_musica(fdata, bt);
+			remove_musica(fdata, bt, filename);
 			break;
 		case 3:
-			search_musica(fdata, bt);
+			search_musica(fdata, bt, filename);
 			break;
 		case 4:
-			///print B-Tree
+			create_index();
 			break;
 		case 5:
 			run = 0;
@@ -180,12 +238,13 @@ int main(void)
 	int err;
 
 	bTree bt ;
-	initBT(&bt) ;
+	char *filename = BTFILE;
+	initBT(&bt, filename);
 
 	err = openfile(DATA_FILE, &fdata);
 	if(err) return err;
 
-	err = ui(fdata, &bt);
+	err = ui(fdata, &bt, filename);
 	if(err) return err;
 
 	fclose(fdata);
