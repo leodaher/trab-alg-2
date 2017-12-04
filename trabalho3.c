@@ -157,7 +157,7 @@ void create_index_read (FILE* fidx, bTree *bt, char *filename) {
 	
 }
 
-void create_index () {
+void create_index (FILE *flog) {
 	char filename[20];
 	printf("Insira o nome do arquivo de dados: ");
 	scanf("%s", filename);
@@ -166,7 +166,7 @@ void create_index () {
 	FILE *fidx = fopen(filename, "r");
 	
 	initBT(&btidx, "rola.idx");
-
+	fprintf(flog, "Execucao da criacao do arquivo de indice <rola.idx> com base no arquivo de dados <%s>.\n", filename);
 	create_index_read(fidx, &btidx, filename);
 	fclose(fidx);
 }
@@ -176,7 +176,7 @@ void create_index () {
 
 
 
-static int ui(FILE* fdata, bTree *bt, char* filename)
+static int ui(FILE* fdata, bTree *bt, char* filename, FILE *flog)
 {
 	printf("\n\n::Bem-vindo ao T3 de Alg2::\n\n");
 	printf("Desenvolvedores:\n\tGuilherme Prearo\n\tGustavo N. Goncalves\n\tPedro V. B. Jeronymo\n\n\n");
@@ -201,7 +201,7 @@ static int ui(FILE* fdata, bTree *bt, char* filename)
 			search_musica(fdata, bt, filename);
 			break;
 		case 4:
-			create_index();
+			create_index(flog);
 			break;
 		case 5:
 			run = 0;
@@ -215,9 +215,10 @@ static int ui(FILE* fdata, bTree *bt, char* filename)
 	return 0;
 }
 
-static int openfile(const char* filename, FILE** fd)
+static int openfile(const char* filename, FILE** fd, FILE** flog)
 {
 	//*fd = fopen(filename, "rb+");
+	*flog = fopen("log_ldaher.txt", "w");
 	*fd = fopen(filename, "r+");
 	if(!*fd)
 	{
@@ -233,19 +234,20 @@ static int openfile(const char* filename, FILE** fd)
 
 int main(void)
 {
-	FILE *fdata ;
+	FILE *fdata, *flog ;
 	int err;
 
 	bTree bt ;
 	char *filename = BTFILE;
 	initBT(&bt, filename);
 
-	err = openfile(DATA_FILE, &fdata);
+	err = openfile(DATA_FILE, &fdata, &flog);
 	if(err) return err;
 
-	err = ui(fdata, &bt, filename);
+	err = ui(fdata, &bt, filename, flog);
 	if(err) return err;
 
+	fclose(flog);
 	fclose(fdata);
 	return 0;
 }
