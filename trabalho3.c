@@ -1,11 +1,10 @@
-/*  Trabalho 3 - Algoritimos e Estruturas de Dados II
- *
- *  Desenvolvedores:
- *    Guilherme Prearo
- *    Gustavo Nicolau Goncalves
- *    Pedro V. B. Jeronymo
- *
- *  (Compilador gcc 4.9.2)
+/*  TRABALHO 2 DE ALGORITMOS E ESTRUTURAS DE DADOS II
+
+Integrantes:
+	Carlos Henrique de Oliveira Franco
+    Guilherme Brunassi Nogima
+    Joao Pedro Silva Mambrini Ruiz
+	Leonardo Akel Daher
  */
 
 #include "trabalho3.h"
@@ -128,7 +127,7 @@ static void remove_musica(FILE* fdata, bTree *bt, char* filename)
 }
 
 
-void create_index_read (FILE* fidx, bTree *bt, char *filename, FILE * flog) {
+void create_index_read (FILE* fidx, bTree *bt, char *filename,  char *idxname, FILE * flog) {
 	registro_t reg;
 	char tamStr[4];
 	int i = 0;
@@ -159,45 +158,48 @@ void create_index_read (FILE* fidx, bTree *bt, char *filename, FILE * flog) {
 
 	c = fgetc(fidx);
 
-	insert(bt, reg.id, offset, "rola.idx", flog);
+	insert(bt, reg.id, offset, idxname, flog);
 
 
-	create_index_read(fidx, bt, filename, flog);
+	create_index_read(fidx, bt, filename, idxname, flog);
 
 }
 
 void create_index (FILE *flog) {
-	char filename[20];
+	char filename[20], idxname[20];
 	printf("Insira o nome do arquivo de dados: ");
 	scanf("%s", filename);
 	bTree btidx;
-
 	FILE *fidx = fopen(filename, "r");
 
-	initBT(&btidx, "rola.idx");
-	fprintf(flog, "Execucao da criacao do arquivo de indice <rola.idx> com base no arquivo de dados <%s>.\n", filename);
-	create_index_read(fidx, &btidx, filename, flog);
+	int i = 0;
+	while (filename[i] != '.') {
+		idxname[i] = filename[i];
+		i++;
+	}
+	char *idx = ".idx";
+	for(int j = 0; j < 5; j++)
+		idxname[i+j] = idx[j];
+
+
+	initBT(&btidx, idxname);
+	fprintf(flog, "Execucao da criacao do arquivo de indice <%s> com base no arquivo de dados <%s>.\n", idxname, filename);
+	create_index_read(fidx, &btidx, filename, idxname, flog);
 	fclose(fidx);
 }
 
-
-
-
-
-
 static int ui(FILE* fdata, bTree *bt, char* filename, FILE *flog)
 {
-	printf("\n\n::Bem-vindo ao T3 de Alg2::\n\n");
-	printf("Desenvolvedores:\n\tGuilherme Prearo\n\tGustavo N. Goncalves\n\tPedro V. B. Jeronymo\n\n\n");
+	printf("\n-- TRABALHO 2 DE ALGORITMOS E ESTRUTURAS DE DADOS II --\n\n");
+	printf("Integrantes:\n- Carlos Henrique de Oliveira Franco\n- Guilherme Brunassi Nogima\n- Joao Pedro Silva Mambrini Ruiz\n- Leonardo Akel Daher\n\n");
 
 	char run = 1;
 
 	while(run)
 	{
 		int op;
-		printf("\n\nSelecione uma operacao de acordo com seu codigo numerico:\n");
-		printf("1. Criar índice\n2. Inserir música\n3. Remover música\n4. Pesquisar por ID\n5. Fechar o programa\n");
-		printf("\nOperacao:> ");
+		printf("\n\n1. Criar índice\n2. Inserir música\n3. Remover música\n4. Pesquisar por ID\n5. Fechar o programa\n");
+		printf("\nComando: ");
 		scanf("%d%*c", &op);
 		switch(op) {
 		case 1:
@@ -216,7 +218,7 @@ static int ui(FILE* fdata, bTree *bt, char* filename, FILE *flog)
 			run = 0;
 			break;
 		default:
-			printf("\n<Erro: selecione uma operacao valida>\n");
+			printf("\nERRO\n");
 			break;
 		}
 	}
@@ -224,10 +226,9 @@ static int ui(FILE* fdata, bTree *bt, char* filename, FILE *flog)
 	return 0;
 }
 
-static int openfile(const char* filename, FILE** fd, FILE** flog)
+static int openfile(const char* filename, FILE** fd)
 {
 	//*fd = fopen(filename, "rb+");
-	*flog = fopen("log_ldaher.txt", "a");
 	*fd = fopen(filename, "r+");
 	if(!*fd)
 	{
@@ -250,7 +251,9 @@ int main(void)
 	char *filename = BTFILE;
 	initBT(&bt, filename);
 
-	err = openfile(DATA_FILE, &fdata, &flog);
+	flog = fopen("log_ldaher.txt", "a");
+
+	err = openfile(DATA_FILE, &fdata);
 	if(err) return err;
 
 	err = ui(fdata, &bt, filename, flog);
