@@ -33,7 +33,7 @@ int startBTree(bTree *bt, char* filename) {
 	return 1 ;
 }
 
-void initPage(bTree *bt, pagina *p) {
+void startPage(bTree *bt, pagina *p) {
 	p->cntChave = 0 ;
 	p->chaves = (chave *) malloc(sizeof(chave) * (bt->ordem - 1)) ;
 	p->filhos = (int *) malloc(sizeof(int) * bt->ordem) ;
@@ -45,7 +45,7 @@ int rrnToOffset(int rrn) {
 }
 
 /*
-	Nome: loadBucket
+	Nome: loadPage
 
 	Parâmetros:
 		bt - ponteiro para bTree
@@ -58,7 +58,7 @@ int rrnToOffset(int rrn) {
 		1 - Sucesso
 		0 - Arquivo de indice não existe
 */
-int loadBucket(bTree *bt, pagina *p, int rrn, char* filename) {
+int loadPage(bTree *bt, pagina *p, int rrn, char* filename) {
 	bt->bTFile = fopen(filename, "r") ;
 	if (!bt->bTFile || bt->raiz == -1) {
 		//Arquivo não existe
@@ -67,7 +67,7 @@ int loadBucket(bTree *bt, pagina *p, int rrn, char* filename) {
 		return 0 ;
 	}
 
-	initBucket(bt, p) ;
+	startPage(bt, p) ;
 
     //Cria um buffer para ler todos os dados da página com apenas um read no arquivo
 	char *buffer = (char *) malloc(sizeof(char) * (PAGE_TAM + 1)) ;
@@ -111,14 +111,14 @@ int loadBucket(bTree *bt, pagina *p, int rrn, char* filename) {
 }
 
 /*
-	Nome: freeBucket
+	Nome: freePage
 
 	Parâmetros:
         p - ponteiro para página
 
 	Função: Libera a mnemória alocada de uma página
 */
-void freeBucket(pagina *p) {
+void freePage(pagina *p) {
 
     //Libera memória das chaves
 	free(p->chaves) ;
@@ -147,7 +147,7 @@ int searchRec(bTree *bt, pagina *p, chave *c, char* filename) {
 	} else if (p->folha == '1') {
 		return 0 ;
 	} else {
-		loadBucket(bt, p, p->filhos[i], filename) ;
+		loadPage(bt, p, p->filhos[i], filename) ;
 		return searchRec(bt, p, c, filename) ;
 	}
 }
@@ -161,10 +161,10 @@ long search(bTree *bt, int id, char* filename) {
 	chave c ;
 	c.id = id ;
 
-	loadBucket(bt, &p, bt->raiz, filename) ;
+	loadPage(bt, &p, bt->raiz, filename) ;
 
 	if (!searchRec(bt, &p, &c, filename)) {
-		freeBucket(&p) ;
+		freePage(&p) ;
 		return -1 ;
 	}
 
@@ -176,7 +176,7 @@ long search(bTree *bt, int id, char* filename) {
 //*****************************************************************
 
 
-int writeBucket(bTree *bt, pagina *p, char* filename) {
+int wrPage(bTree *bt, pagina *p, char* filename) {
     bt->bTFile = fopen(filename, "r+") ;
 
     if (!bt->bTFile) {
@@ -208,7 +208,7 @@ int writeBucket(bTree *bt, pagina *p, char* filename) {
 }
 
 
-int updateHeader(bTree *bt, char* filename) {
+int atuCab(bTree *bt, char* filename) {
 	bt->bTFile = fopen(filename, "r+") ;
 
     if (!bt->bTFile) {
@@ -245,13 +245,13 @@ int insertRec(bTree *bt, pagina *p, chave *c, int *newChild, char* filename, FIL
 		if (p->filhos[i] > bt->nextRrn) {
 			printf("Errado\n");
 		}
-		loadBucket(bt, child, p->filhos[i], filename) ;
+		loadPage(bt, child, p->filhos[i], filename) ;
 
 		//Tenta inserir a chave na página filho
 		if (insertRec(bt, child, c, newChild, filename, flog) == 1) {
 			//Se conseguiu sem propagação, libera a
 			//memória da página filho e retorna 1
-			freeBucket(child) ;
+			freePage(child) ;
 			free(child) ;
 			return 1 ;
 		}
@@ -260,7 +260,7 @@ int insertRec(bTree *bt, pagina *p, chave *c, int *newChild, char* filename, FIL
 		//e tenta inserir a chave propaga na página atual
 		//A chave propaga está em c e o filho da direita está em
 		//newChild
-		freeBucket(child) ;
+		freePage(child) ;
 		free(child) ;
 	}
 
@@ -292,7 +292,7 @@ int insertRec(bTree *bt, pagina *p, chave *c, int *newChild, char* filename, FIL
 		//Incrementa o número de chaves na página
 		p->cntChave++ ;
 		//Escreve a página em disco
-		writeBucket(bt, p, filename) ;
+		wrPage(bt, p, filename) ;
 
 		return 1 ;
 	} else {
@@ -300,10 +300,10 @@ int insertRec(bTree *bt, pagina *p, chave *c, int *newChild, char* filename, FIL
 		fprintf(flog, "Divisao de no - pagina %d\n", p->rrn);
 		//Cria uma página para dividir as chaves
 		pagina *right = (pagina *) malloc(sizeof(pagina)) ;
-		initBucket(bt, right) ;
+		startPage(bt, right) ;
 		right->folha = p->folha ;
 		right->rrn = bt->nextRrn++ ;
-		updateHeader(bt, filename) ;
+		atuCab(bt, filename) ;
 
 		//Cria um vetor para ordenar as chaves antes de dividir
 		chave *toSplit = (chave *) malloc(sizeof(chave) * ORDEM) ;
@@ -363,10 +363,10 @@ int insertRec(bTree *bt, pagina *p, chave *c, int *newChild, char* filename, FIL
 		*newChild = right->rrn ;
 
 		//Escreve no arquivo
-		writeBucket(bt, p, filename) ;
-		writeBucket(bt, right, filename) ;
+		wrPage(bt, p, filename) ;
+		wrPage(bt, right, filename) ;
 
-		freeBucket(right) ;
+		freePage(right) ;
 		free(right) ;
 
 		return 2 ;
@@ -388,23 +388,23 @@ int insert(bTree *bt, int id, long offset, char* filename, FILE * flog) {
 	if (bt->raiz == -1) {
 		//Se a árvore não existe, cria uma página,
 		//a raiz, com a chave a ser inserida
-		initBucket(bt, root) ;
+		startPage(bt, root) ;
 		root->cntChave = 1 ;
 		root->folha = '1' ;
 		root->chaves[0] = c ;
 		bt->raiz = root->rrn = 0 ;
 		bt->nextRrn++ ;
 
-		updateHeader(bt, filename) ;
-		writeBucket(bt, root, filename) ;
+		atuCab(bt, filename) ;
+		wrPage(bt, root, filename) ;
 	} else {
 		//Se a árvore exite, carrega a raiz em memória
-		loadBucket(bt, root, bt->raiz, filename) ;
+		loadPage(bt, root, bt->raiz, filename) ;
 
 		int newChild = 0;
 		if (insertRec(bt, root, &c, &newChild, filename, flog) == 2) {
 			pagina *p = malloc(sizeof(pagina)) ;
-			initBucket(bt, p) ;
+			startPage(bt, p) ;
 
 			p->folha = '0' ;
 			p->cntChave = 1 ;
@@ -413,15 +413,15 @@ int insert(bTree *bt, int id, long offset, char* filename, FILE * flog) {
 			p->filhos[0] = bt->raiz ;
 			p->filhos[1] = newChild ;
 			bt->raiz = p->rrn ;
-			updateHeader(bt, filename) ;
+			atuCab(bt, filename) ;
 
-			writeBucket(bt, p, filename) ;
-			freeBucket(p) ;
+			wrPage(bt, p, filename) ;
+			freePage(p) ;
 			free(p) ;
 		}
 	}
 
-	freeBucket(root) ;
+	freePage(root) ;
 	free(root) ;
 
 	return 1 ;

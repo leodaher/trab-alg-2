@@ -29,11 +29,7 @@ int readRegister(registro_t *reg, long offset, FILE *fd) {
 }
 
 static void printRegister(registro_t *reg) {
-	printf("ID: %d\n"
-		   "Título: %s\n"
-		   "Gênero: %s\n",
-		   reg->id, reg->titulo,
-		   reg->genero);
+	printf("ID: %d\n""Título: %s\n""Gênero: %s\n", reg->id, reg->titulo, reg->genero);
 }
 
 static void searchMusica(FILE *fdata, bTree *bt, char* filename, FILE *flog)
