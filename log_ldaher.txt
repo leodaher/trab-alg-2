@@ -1,2 +1,6 @@
 Execucao de operacao de PESQUISA de <14>
 Chave <14> encontrada, offset <39>, Titulo: <Hey Jude>, Genero: <Rock>
+Execucao da criacao do arquivo de indice <xdados.idx—ÆvÙ> com base no arquivo de dados <dados.dad>.
+Execucao da criacao do arquivo de indice <xdados.idx> com base no arquivo de dados <dados.dad>.
+Execucao da criacao do arquivo de indice <dados.idx> com base no arquivo de dados <dados.dad>.
+Execucao da criacao do arquivo de indice <dados.idx> com base no arquivo de dados <dados.dad>.
