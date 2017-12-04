@@ -10,33 +10,6 @@ Integrantes:
 #include "trabalho3.h"
 #include "btree.h"
 
-void regfile_remove(long offset, FILE* fd)
-{
-	fseek(fd, offset, SEEK_SET);
-	//fwrite(REGFILE_REGREMOVED, sizeof(char), sizeof(REGFILE_REGREMOVED), fd);
-	fprintf(fd, "%s", REGFILE_REGREMOVED);
-}
-
-long regfile_insert(char buffer[REGFILE_BUFFERSIZE], char size, FILE* fd)
-{
-	fseek(fd, 0, SEEK_END);
-	long offset = ftell(fd);
-	/* Escreve tamanho do registro */
-	//fwrite(&size, sizeof(char), 1, fd);
-	fprintf(fd, "%d", size) ;
-	/* Escreve registro */
-	//fwrite(buffer, sizeof(char), size, fd);
-	fprintf(fd, "|%s", buffer) ;
-
-	return offset;
-}
-
-
-int reg_to_buffer(registro_t *reg, char buffer[REGFILE_BUFFERSIZE])
-{
-	sprintf(buffer, "%d|%s|%s|", reg->id, reg->titulo, reg->genero);
-	return strlen(buffer);
-}
 
 int file_to_reg(registro_t *reg, long offset, FILE *fd) {
 	fseek(fd, offset, SEEK_SET) ;
@@ -62,14 +35,6 @@ int file_to_reg(registro_t *reg, long offset, FILE *fd) {
 	free(buffer) ;
 
 	return 1 ;
-}
-
-long insert_reg(registro_t* reg, FILE* fdata)
-{
-	char buffer[REGFILE_BUFFERSIZE];
-	char size = reg_to_buffer(reg, buffer);
-	long offset = regfile_insert(buffer, size, fdata);
-	return offset;
 }
 
 static void print_reg(registro_t *reg) {
@@ -105,6 +70,35 @@ static void search_musica(FILE *fdata, bTree *bt, char* filename, FILE *flog)
 	print_reg(&reg) ;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
+
+long writeInReg(char buffer[REGFILE_BUFFERSIZE], char size, FILE* fd)
+{
+	fseek(fd, 0, SEEK_END);
+	long offset = ftell(fd);
+	/* Escreve tamanho do registro */
+	//fwrite(&size, sizeof(char), 1, fd);
+	fprintf(fd, "%d", size) ;
+	/* Escreve registro */
+	//fwrite(buffer, sizeof(char), size, fd);
+	fprintf(fd, "|%s", buffer) ;
+
+	return offset;
+}
+
+int reg_to_buffer(registro_t *reg, char buffer[REGFILE_BUFFERSIZE])
+{
+	sprintf(buffer, "%d|%s|%s|", reg->id, reg->titulo, reg->genero);
+	return strlen(buffer);
+}
+
+long insert_reg(registro_t* reg, FILE* fdata)
+{
+	char buffer[REGFILE_BUFFERSIZE];
+	char size = reg_to_buffer(reg, buffer);
+	long offset = writeInReg(buffer, size, fdata);
+	return offset;
+}
 
 static void insert_musica(FILE* fdata, bTree *bt, char* filename, FILE * flog)
 {
@@ -133,20 +127,7 @@ static void insert_musica(FILE* fdata, bTree *bt, char* filename, FILE * flog)
 	fprintf(flog, "Chave <%d> inserida com sucesso\n", reg.id);
 }
 
-static void remove_musica(FILE* fdata, bTree *bt, char* filename)
-{
-	printf("Indique o ID da música: ");
-	int id;
-	scanf("%d%*c", &id);
-	long offset = search(bt, id, filename);
-	if (offset == -1) {
-		printf("Música não encontrada!\n") ;
-		return ;
-	}
-	regfile_remove(offset, fdata);
-	printf("\n<Música removida com sucesso>\n");
-}
-
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void create_index_read (FILE* fidx, bTree *bt, char *filename,  char *idxname, FILE * flog) {
 	registro_t reg;
@@ -209,7 +190,9 @@ void create_index (FILE *flog) {
 	fclose(fidx);
 }
 
-static int ui(FILE* fdata, bTree *bt, char* filename, FILE *flog)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static int menu(FILE* fdata, bTree *bt, char* filename, FILE *flog)
 {
 	printf("\n-- TRABALHO 2 DE ALGORITMOS E ESTRUTURAS DE DADOS II --\n\n");
 	printf("Integrantes:\n- Carlos Henrique de Oliveira Franco\n- Guilherme Brunassi Nogima\n- Joao Pedro Silva Mambrini Ruiz\n- Leonardo Akel Daher\n\n");
@@ -219,7 +202,7 @@ static int ui(FILE* fdata, bTree *bt, char* filename, FILE *flog)
 	while(run)
 	{
 		int op;
-		printf("\n\n1. Criar índice\n2. Inserir música\n3. Remover música\n4. Pesquisar por ID\n5. Fechar o programa\n");
+		printf("\n\n1. Criar índice\n2. Inserir música\n3. Pesquisar por ID\n4. Fechar o programa\n");
 		printf("\nComando: ");
 		scanf("%d%*c", &op);
 		switch(op) {
@@ -233,9 +216,6 @@ static int ui(FILE* fdata, bTree *bt, char* filename, FILE *flog)
 			search_musica(fdata, bt, filename, flog);
 			break;
 		case 4:
-			remove_musica(fdata, bt, filename);
-			break;
-		case 5:
 			run = 0;
 			break;
 		default:
@@ -277,7 +257,7 @@ int main(void)
 	err = openfile(DATA_FILE, &fdata);
 	if(err) return err;
 
-	err = ui(fdata, &bt, filename, flog);
+	err = menu(fdata, &bt, filename, flog);
 	if(err) return err;
 
 	fclose(flog);
