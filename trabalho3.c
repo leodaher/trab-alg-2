@@ -1,12 +1,3 @@
-/*  TRABALHO 2 DE ALGORITMOS E ESTRUTURAS DE DADOS II
-
-Integrantes:
-	Carlos Henrique de Oliveira Franco
-    Guilherme Brunassi Nogima
-    Joao Pedro Silva Mambrini Ruiz
-	Leonardo Akel Daher
- */
-
 #include "trabalho3.h"
 #include "btree.h"
 
@@ -176,7 +167,7 @@ void createIndex (FILE *flog) {
 		idxname[i+j] = idx[j];
 
 
-	initBT(&btidx, idxname);
+	startBTree(&btidx, idxname);
 	fprintf(flog, "Execucao da criacao do arquivo de indice <%s> com base no arquivo de dados <%s>.\n", idxname, filename);
 	createIndexRead(fidx, &btidx, filename, idxname, flog);
 	fclose(fidx);
@@ -242,7 +233,7 @@ int main(void)
 
 	bTree bt ;
 	char *filename = BTFILE;
-	initBT(&bt, filename);
+	startBTree(&bt, filename);
 
 	flog = fopen("log_ldaher.txt", "a");
 
