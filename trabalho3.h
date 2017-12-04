@@ -19,6 +19,12 @@
 #define BTREE_FILE	"arvore.idx"
 #define DATA_FILE	"dados.dad"
 
+/* Tamanho do maior inteiro que cabe em um char + '\0' */
+#define REGFILE_BUFFERSIZE 256
+
+/* Marcador de registro removido */
+#define REGFILE_REGREMOVED "*|"
+
 typedef struct {
 	int id;
 	char titulo[30];

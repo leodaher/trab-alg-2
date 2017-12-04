@@ -10,6 +10,27 @@ Integrantes:
 #include "trabalho3.h"
 #include "btree.h"
 
+void regfile_remove(long offset, FILE* fd)
+{
+	fseek(fd, offset, SEEK_SET);
+	//fwrite(REGFILE_REGREMOVED, sizeof(char), sizeof(REGFILE_REGREMOVED), fd);
+	fprintf(fd, "%s", REGFILE_REGREMOVED);
+}
+
+long regfile_insert(char buffer[REGFILE_BUFFERSIZE], char size, FILE* fd)
+{
+	fseek(fd, 0, SEEK_END);
+	long offset = ftell(fd);
+	/* Escreve tamanho do registro */
+	//fwrite(&size, sizeof(char), 1, fd);
+	fprintf(fd, "%d", size) ;
+	/* Escreve registro */
+	//fwrite(buffer, sizeof(char), size, fd);
+	fprintf(fd, "|%s", buffer) ;
+
+	return offset;
+}
+
 
 int reg_to_buffer(registro_t *reg, char buffer[REGFILE_BUFFERSIZE])
 {
