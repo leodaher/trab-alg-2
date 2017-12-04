@@ -36,12 +36,12 @@
 //Organização: "[FOLHA][QUANTIDADE DE CHAVES][ID1][OFFSET1]..[IDN][OFFSETN][FILHO1]..[FILHON+1]"
 #define PAGE_SIZE (CHAR_SIZE + INT_SIZE + CHAVE_SIZE * (ORDEM - 1) + LONG_SIZE * ORDEM)
 
-#define BTFILE "BTFile.idx"
+#define BTFILE "arvore.idx"
 
 typedef long offset_t ;
 
 typedef struct {
-	int id;	
+	int id;
 	offset_t offset;
 } chave;
 
@@ -114,10 +114,10 @@ void printPage(pagina *p) ;
 
 	Retorno:
 		>= 0 - Sucesso
-		-1 - ID não encontrado 
+		-1 - ID não encontrado
 */
 long search(bTree *bt, int id, char* filename) ;
 
-int insert(bTree *bt, int id, long offset, char* filename) ;
+int insert(bTree *bt, int id, long offset, char* filename, FILE * flog) ;
 
 #endif

@@ -78,7 +78,7 @@ static void search_musica(FILE *fdata, bTree *bt, char* filename, FILE *flog)
 	registro_t reg ;
 	if (!file_to_reg(&reg, offset, fdata)) {
 		printf("Música não existente!\n");
-		fprintf(flog, "“Chave <%d> nao encontrada\n", id);
+		fprintf(flog, "Chave <%d> nao encontrada\n", id);
 		return ;
 	}
 	fprintf(flog, "Chave <%d> encontrada, offset <%ld>, Titulo: <%s>, Genero: <%s>\n", reg.id, offset, reg.titulo, reg.genero);
@@ -86,16 +86,13 @@ static void search_musica(FILE *fdata, bTree *bt, char* filename, FILE *flog)
 }
 
 
-static void insert_musica(FILE* fdata, bTree *bt, char* filename)
+static void insert_musica(FILE* fdata, bTree *bt, char* filename, FILE * flog)
 {
 	registro_t reg;
 	printf("\n\nInsira os dados da nova música\n");
 	printf("Id: ");
 	scanf("%d%*c", &reg.id);
-	if (search(bt, reg.id, filename) != -1) {
-		printf("Erro! Música existente!\n");
-		return ;
-	}
+
 	printf("Título: ");
 	fgets(reg.titulo, sizeof(reg.titulo), stdin);
 	reg.titulo[strlen(reg.titulo)-1] = '\0';
@@ -103,9 +100,17 @@ static void insert_musica(FILE* fdata, bTree *bt, char* filename)
 	fgets(reg.genero, sizeof(reg.genero), stdin);
 	reg.genero[strlen(reg.genero)-1] = '\0';
 
+	fprintf(flog, "Execucao de operacao de INSERCAO de <%d>, <%s>, <%s>\n", reg.id, reg.titulo, reg.genero);
+
+	if (search(bt, reg.id, filename) != -1) {
+		printf("Erro! Música existente!\n");
+		fprintf(flog, "Chave <%d> duplicada\n", reg.id);
+		return ;
+	}
+
 	long offset = insert_reg(&reg, fdata);
-	insert(bt, reg.id, offset, filename) ;
-	printf("\n<Música inserida com sucesso>\n");
+	insert(bt, reg.id, offset, filename, flog) ;
+	fprintf(flog, "Chave <%d> inserida com sucesso\n", reg.id);
 }
 
 static void remove_musica(FILE* fdata, bTree *bt, char* filename)
@@ -123,11 +128,11 @@ static void remove_musica(FILE* fdata, bTree *bt, char* filename)
 }
 
 
-void create_index_read (FILE* fidx, bTree *bt, char *filename) {
+void create_index_read (FILE* fidx, bTree *bt, char *filename, FILE * flog) {
 	registro_t reg;
 	char tamStr[4];
 	int i = 0;
-	
+
 	char c = fgetc(fidx);
 
 	if (c == EOF){
@@ -153,12 +158,12 @@ void create_index_read (FILE* fidx, bTree *bt, char *filename) {
 	printf("\n    tam = %d\n    id = %d\n    titulo = %s\n    genero = %s\n\n",tam, reg.id, reg.titulo, reg.genero);
 
 	c = fgetc(fidx);
-	
-	insert(bt, reg.id, offset, "rola.idx");
+
+	insert(bt, reg.id, offset, "rola.idx", flog);
 
 
-	create_index_read(fidx, bt, filename);
-	
+	create_index_read(fidx, bt, filename, flog);
+
 }
 
 void create_index (FILE *flog) {
@@ -168,10 +173,10 @@ void create_index (FILE *flog) {
 	bTree btidx;
 
 	FILE *fidx = fopen(filename, "r");
-	
+
 	initBT(&btidx, "rola.idx");
 	fprintf(flog, "Execucao da criacao do arquivo de indice <rola.idx> com base no arquivo de dados <%s>.\n", filename);
-	create_index_read(fidx, &btidx, filename);
+	create_index_read(fidx, &btidx, filename, flog);
 	fclose(fidx);
 }
 
@@ -191,21 +196,21 @@ static int ui(FILE* fdata, bTree *bt, char* filename, FILE *flog)
 	{
 		int op;
 		printf("\n\nSelecione uma operacao de acordo com seu codigo numerico:\n");
-		printf("1. Inserir música\n2. Remover música\n3. Pesquisar por ID\n5. Fechar o programa\n");
+		printf("1. Criar índice\n2. Inserir música\n3. Remover música\n4. Pesquisar por ID\n5. Fechar o programa\n");
 		printf("\nOperacao:> ");
 		scanf("%d%*c", &op);
 		switch(op) {
 		case 1:
-			insert_musica(fdata, bt, filename);
+			create_index(flog);
 			break;
 		case 2:
-			remove_musica(fdata, bt, filename);
+			insert_musica(fdata, bt, filename, flog);
 			break;
 		case 3:
 			search_musica(fdata, bt, filename, flog);
 			break;
 		case 4:
-			create_index(flog);
+			remove_musica(fdata, bt, filename);
 			break;
 		case 5:
 			run = 0;
@@ -222,7 +227,7 @@ static int ui(FILE* fdata, bTree *bt, char* filename, FILE *flog)
 static int openfile(const char* filename, FILE** fd, FILE** flog)
 {
 	//*fd = fopen(filename, "rb+");
-	*flog = fopen("log_ldaher.txt", "w");
+	*flog = fopen("log_ldaher.txt", "a");
 	*fd = fopen(filename, "r+");
 	if(!*fd)
 	{
