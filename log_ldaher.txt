@@ -1,0 +1,1 @@
+Execucao da criacao do arquivo de indice <rola.idx> com base no arquivo de dados <dados.dad>.

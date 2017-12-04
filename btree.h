@@ -72,7 +72,7 @@ typedef struct {
 		1 - Sucesso
 		0 - Arquivo de indice não existe
 */
-int initBT(bTree *bt) ;
+int initBT(bTree *bt, char* filename) ;
 
 
 /*
@@ -116,8 +116,8 @@ void printPage(pagina *p) ;
 		>= 0 - Sucesso
 		-1 - ID não encontrado 
 */
-long search(bTree *bt, int id) ;
+long search(bTree *bt, int id, char* filename) ;
 
-int insert(bTree *bt, int id, long offset) ;
+int insert(bTree *bt, int id, long offset, char* filename) ;
 
 #endif

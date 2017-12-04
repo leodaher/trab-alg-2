@@ -14,16 +14,16 @@
 
 void printBucket(pagina *p) ;
 
-int initBT(bTree *bt) {
+int initBT(bTree *bt, char* filename) {
 	bt->ordem = ORDEM ;
 
-	bt->bTFile = fopen(BTFILE, "r") ;
+	bt->bTFile = fopen(filename, "r") ;
 	if (!bt->bTFile) {
 		//Arquivo da árvore não existe
 		bt->raiz = -1 ;
 		bt->nextRrn = 0 ;
 
-		bt->bTFile = fopen(BTFILE, "w") ;
+		bt->bTFile = fopen(filename, "w") ;
 		fclose(bt->bTFile) ;
 
 		return 0 ;
@@ -71,8 +71,8 @@ int rrnToOffset(int rrn) {
 		1 - Sucesso
 		0 - Arquivo de indice não existe
 */
-int loadBucket(bTree *bt, pagina *p, int rrn) {
-	bt->bTFile = fopen(BTFILE, "r") ;
+int loadBucket(bTree *bt, pagina *p, int rrn, char* filename) {
+	bt->bTFile = fopen(filename, "r") ;
 	if (!bt->bTFile || bt->raiz == -1) {
 		//Arquivo não existe
 		p->cntChave = 0 ;
@@ -147,7 +147,7 @@ void freeBucket(pagina *p) {
 //							Busca
 //*****************************************************************
 
-int searchRec(bTree *bt, pagina *p, chave *c) {
+int searchRec(bTree *bt, pagina *p, chave *c, char* filename) {
 	int i = 0 ;
 
 	while (i < p->cntChave && p->chaves[i].id < c->id) {
@@ -160,12 +160,12 @@ int searchRec(bTree *bt, pagina *p, chave *c) {
 	} else if (p->folha == '1') {
 		return 0 ;
 	} else {
-		loadBucket(bt, p, p->filhos[i]) ;
-		return searchRec(bt, p, c) ;
+		loadBucket(bt, p, p->filhos[i], filename) ;
+		return searchRec(bt, p, c, filename) ;
 	}
 }
 
-long search(bTree *bt, int id) {
+long search(bTree *bt, int id, char* filename) {
 	if (bt->raiz == -1) {
 		return -1 ;
 	}
@@ -174,9 +174,9 @@ long search(bTree *bt, int id) {
 	chave c ;
 	c.id = id ;
 	
-	loadBucket(bt, &p, bt->raiz) ;
+	loadBucket(bt, &p, bt->raiz, filename) ;
 
-	if (!searchRec(bt, &p, &c)) {
+	if (!searchRec(bt, &p, &c, filename)) {
 		freeBucket(&p) ;
 		return -1 ;
 	}
@@ -189,8 +189,8 @@ long search(bTree *bt, int id) {
 //*****************************************************************
 
 
-int writeBucket(bTree *bt, pagina *p) {
-    bt->bTFile = fopen(BTFILE, "r+") ;
+int writeBucket(bTree *bt, pagina *p, char* filename) {
+    bt->bTFile = fopen(filename, "r+") ;
 
     if (!bt->bTFile) {
         return 0 ;    
@@ -252,8 +252,8 @@ void printBucket(pagina *p) {
 	printf("\n");
 }	
 
-int updateHeader(bTree *bt) {
-	bt->bTFile = fopen(BTFILE, "r+") ;
+int updateHeader(bTree *bt, char* filename) {
+	bt->bTFile = fopen(filename, "r+") ;
 
     if (!bt->bTFile) {
         return 0 ;    
@@ -270,7 +270,7 @@ int updateHeader(bTree *bt) {
 //						Inserção
 //*****************************************************************
 
-int insertRec(bTree *bt, pagina *p, chave *c, int *newChild) {
+int insertRec(bTree *bt, pagina *p, chave *c, int *newChild, char* filename) {
 	int i, j ;
 
 	i = 0 ;
@@ -289,10 +289,10 @@ int insertRec(bTree *bt, pagina *p, chave *c, int *newChild) {
 		if (p->filhos[i] > bt->nextRrn) {
 			printf("Errado\n");
 		}
-		loadBucket(bt, child, p->filhos[i]) ;
+		loadBucket(bt, child, p->filhos[i], filename) ;
 
 		//Tenta inserir a chave na página filho
-		if (insertRec(bt, child, c, newChild) == 1) {
+		if (insertRec(bt, child, c, newChild, filename) == 1) {
 			//Se conseguiu sem propagação, libera a 
 			//memória da página filho e retorna 1
 			freeBucket(child) ;
@@ -336,7 +336,7 @@ int insertRec(bTree *bt, pagina *p, chave *c, int *newChild) {
 		//Incrementa o número de chaves na página
 		p->cntChave++ ;
 		//Escreve a página em disco
-		writeBucket(bt, p) ;
+		writeBucket(bt, p, filename) ;
 
 		return 1 ;
 	} else {
@@ -347,7 +347,7 @@ int insertRec(bTree *bt, pagina *p, chave *c, int *newChild) {
 		initBucket(bt, right) ;
 		right->folha = p->folha ;
 		right->rrn = bt->nextRrn++ ;
-		updateHeader(bt) ;
+		updateHeader(bt, filename) ;
 
 		//Cria um vetor para ordenar as chaves antes de dividir
 		chave *toSplit = (chave *) malloc(sizeof(chave) * ORDEM) ;
@@ -405,8 +405,8 @@ int insertRec(bTree *bt, pagina *p, chave *c, int *newChild) {
 		*newChild = right->rrn ;
 
 		//Escreve no arquivo
-		writeBucket(bt, p) ;
-		writeBucket(bt, right) ;
+		writeBucket(bt, p, filename) ;
+		writeBucket(bt, right, filename) ;
 
 		freeBucket(right) ;
 		free(right) ;
@@ -416,12 +416,12 @@ int insertRec(bTree *bt, pagina *p, chave *c, int *newChild) {
 
 }
 
-int insert(bTree *bt, int id, long offset) {
+int insert(bTree *bt, int id, long offset, char* filename) {
 	chave c ;
 	c.id = id ;
 	c.offset = offset ;
 
-	if (search(bt, id) != -1) {
+	if (search(bt, id, filename) != -1) {
 		return 0 ;
 	}
 
@@ -437,14 +437,14 @@ int insert(bTree *bt, int id, long offset) {
 		bt->raiz = root->rrn = 0 ;
 		bt->nextRrn++ ;
 
-		updateHeader(bt) ;
-		writeBucket(bt, root) ;
+		updateHeader(bt, filename) ;
+		writeBucket(bt, root, filename) ;
 	} else {
 		//Se a árvore exite, carrega a raiz em memória
-		loadBucket(bt, root, bt->raiz) ;
+		loadBucket(bt, root, bt->raiz, filename) ;
 
 		int newChild = 0;
-		if (insertRec(bt, root, &c, &newChild) == 2) {
+		if (insertRec(bt, root, &c, &newChild, filename) == 2) {
 			pagina *p = malloc(sizeof(pagina)) ;
 			initBucket(bt, p) ;
 
@@ -455,9 +455,9 @@ int insert(bTree *bt, int id, long offset) {
 			p->filhos[0] = bt->raiz ;
 			p->filhos[1] = newChild ;
 			bt->raiz = p->rrn ;
-			updateHeader(bt) ;
+			updateHeader(bt, filename) ;
 
-			writeBucket(bt, p) ;
+			writeBucket(bt, p, filename) ;
 			freeBucket(p) ;
 			free(p) ;
 		}

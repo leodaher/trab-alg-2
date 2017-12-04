@@ -47,3 +47,4 @@ long regfile_insert(char buffer[REGFILE_BUFFERSIZE], char size, FILE* fd)
 {
 	return regfile_insert_at_end(buffer, size, fd);
 }
+
