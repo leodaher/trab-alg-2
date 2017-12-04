@@ -11,7 +11,7 @@ Integrantes:
 #include "btree.h"
 
 
-int file_to_reg(registro_t *reg, long offset, FILE *fd) {
+int readRegister(registro_t *reg, long offset, FILE *fd) {
 	fseek(fd, offset, SEEK_SET) ;
 
 	int size = 0;
@@ -37,7 +37,7 @@ int file_to_reg(registro_t *reg, long offset, FILE *fd) {
 	return 1 ;
 }
 
-static void print_reg(registro_t *reg) {
+static void printRegister(registro_t *reg) {
 	printf("ID: %d\n"
 		   "Título: %s\n"
 		   "Gênero: %s\n",
@@ -45,7 +45,7 @@ static void print_reg(registro_t *reg) {
 		   reg->genero);
 }
 
-static void search_musica(FILE *fdata, bTree *bt, char* filename, FILE *flog)
+static void searchMusica(FILE *fdata, bTree *bt, char* filename, FILE *flog)
 {
 	int id ;
 	printf("Informe o id da música a ser pesquisada: ");
@@ -61,13 +61,13 @@ static void search_musica(FILE *fdata, bTree *bt, char* filename, FILE *flog)
 	}
 
 	registro_t reg ;
-	if (!file_to_reg(&reg, offset, fdata)) {
+	if (!readRegister(&reg, offset, fdata)) {
 		printf("Música não existente!\n");
 		fprintf(flog, "Chave <%d> nao encontrada\n", id);
 		return ;
 	}
 	fprintf(flog, "Chave <%d> encontrada, offset <%ld>, Titulo: <%s>, Genero: <%s>\n", reg.id, offset, reg.titulo, reg.genero);
-	print_reg(&reg) ;
+	printRegister(&reg) ;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -86,21 +86,9 @@ long writeInReg(char buffer[REGFILE_BUFFERSIZE], char size, FILE* fd)
 	return offset;
 }
 
-int reg_to_buffer(registro_t *reg, char buffer[REGFILE_BUFFERSIZE])
-{
-	sprintf(buffer, "%d|%s|%s|", reg->id, reg->titulo, reg->genero);
-	return strlen(buffer);
-}
 
-long insert_reg(registro_t* reg, FILE* fdata)
-{
-	char buffer[REGFILE_BUFFERSIZE];
-	char size = reg_to_buffer(reg, buffer);
-	long offset = writeInReg(buffer, size, fdata);
-	return offset;
-}
 
-static void insert_musica(FILE* fdata, bTree *bt, char* filename, FILE * flog)
+static void insertMusica(FILE* fdata, bTree *bt, char* filename, FILE * flog)
 {
 	registro_t reg;
 	printf("\n\nInsira os dados da nova música\n");
@@ -122,14 +110,18 @@ static void insert_musica(FILE* fdata, bTree *bt, char* filename, FILE * flog)
 		return ;
 	}
 
-	long offset = insert_reg(&reg, fdata);
+	char buffer[REGFILE_BUFFERSIZE];
+	sprintf(buffer, "%d|%s|%s|", reg.id, reg.titulo, reg.genero);
+	char size = strlen(buffer);
+	long offset = writeInReg(buffer, size, fdata);
+
 	insert(bt, reg.id, offset, filename, flog) ;
 	fprintf(flog, "Chave <%d> inserida com sucesso\n", reg.id);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void create_index_read (FILE* fidx, bTree *bt, char *filename,  char *idxname, FILE * flog) {
+void createIndexRead (FILE* fidx, bTree *bt, char *filename,  char *idxname, FILE * flog) {
 	registro_t reg;
 	char tamStr[4];
 	int i = 0;
@@ -163,11 +155,11 @@ void create_index_read (FILE* fidx, bTree *bt, char *filename,  char *idxname, F
 	insert(bt, reg.id, offset, idxname, flog);
 
 
-	create_index_read(fidx, bt, filename, idxname, flog);
+	createIndexRead(fidx, bt, filename, idxname, flog);
 
 }
 
-void create_index (FILE *flog) {
+void createIndex (FILE *flog) {
 	char filename[20], idxname[20];
 	printf("Insira o nome do arquivo de dados: ");
 	scanf("%s", filename);
@@ -186,7 +178,7 @@ void create_index (FILE *flog) {
 
 	initBT(&btidx, idxname);
 	fprintf(flog, "Execucao da criacao do arquivo de indice <%s> com base no arquivo de dados <%s>.\n", idxname, filename);
-	create_index_read(fidx, &btidx, filename, idxname, flog);
+	createIndexRead(fidx, &btidx, filename, idxname, flog);
 	fclose(fidx);
 }
 
@@ -207,13 +199,13 @@ static int menu(FILE* fdata, bTree *bt, char* filename, FILE *flog)
 		scanf("%d%*c", &op);
 		switch(op) {
 		case 1:
-			create_index(flog);
+			createIndex(flog);
 			break;
 		case 2:
-			insert_musica(fdata, bt, filename, flog);
+			insertMusica(fdata, bt, filename, flog);
 			break;
 		case 3:
-			search_musica(fdata, bt, filename, flog);
+			searchMusica(fdata, bt, filename, flog);
 			break;
 		case 4:
 			run = 0;
@@ -227,7 +219,7 @@ static int menu(FILE* fdata, bTree *bt, char* filename, FILE *flog)
 	return 0;
 }
 
-static int openfile(const char* filename, FILE** fd)
+static int openFile(const char* filename, FILE** fd)
 {
 	//*fd = fopen(filename, "rb+");
 	*fd = fopen(filename, "r+");
@@ -254,7 +246,7 @@ int main(void)
 
 	flog = fopen("log_ldaher.txt", "a");
 
-	err = openfile(DATA_FILE, &fdata);
+	err = openFile(DATA_FILE, &fdata);
 	if(err) return err;
 
 	err = menu(fdata, &bt, filename, flog);
