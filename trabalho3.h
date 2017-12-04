@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "regfile.h"
 
 #define BTREE_FILE	"arvore.idx"
 #define DATA_FILE	"dados.dad"

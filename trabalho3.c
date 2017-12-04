@@ -175,7 +175,7 @@ void create_index (FILE *flog) {
 		idxname[i+j] = idx[j];
 
 
-	initBT(&btidx, idxname);
+	startBTree(&btidx, idxname);
 	fprintf(flog, "Execucao da criacao do arquivo de indice <%s> com base no arquivo de dados <%s>.\n", idxname, filename);
 	create_index_read(fidx, &btidx, filename, idxname, flog);
 	fclose(fidx);
@@ -241,7 +241,7 @@ int main(void)
 
 	bTree bt ;
 	char *filename = BTFILE;
-	initBT(&bt, filename);
+	startBTree(&bt, filename);
 
 	flog = fopen("log_ldaher.txt", "a");
 

@@ -3,7 +3,7 @@
 #include <string.h>
 
 
-int initBT(bTree *bt, char* filename) {
+int startBTree(bTree *bt, char* filename) {
 	bt->ordem = ORDEM ;
 
 	bt->bTFile = fopen(filename, "r") ;
@@ -43,7 +43,7 @@ void initBucket(bTree *bt, pagina *p) {
 
 
 int rrnToOffset(int rrn) {
-	return 2 * INT_SIZE + rrn * PAGE_SIZE ;
+	return 2 * INT_TAM + rrn * PAGE_TAM ;
 }
 
 /*
@@ -72,12 +72,12 @@ int loadBucket(bTree *bt, pagina *p, int rrn, char* filename) {
 	initBucket(bt, p) ;
 
     //Cria um buffer para ler todos os dados da página com apenas um read no arquivo
-	char *buffer = (char *) malloc(sizeof(char) * (PAGE_SIZE + 1)) ;
+	char *buffer = (char *) malloc(sizeof(char) * (PAGE_TAM + 1)) ;
 
     //Posiciona o ponteiro do arquivo na posição da página
 	fseek(bt->bTFile, rrnToOffset(rrn), SEEK_SET) ;
     //Lê a página inteira em memória
-	fgets(buffer, PAGE_SIZE + 1, bt->bTFile) ;
+	fgets(buffer, PAGE_TAM + 1, bt->bTFile) ;
     //Fecha o arquivo
 	fclose(bt->bTFile) ;
 
@@ -88,20 +88,20 @@ int loadBucket(bTree *bt, pagina *p, int rrn, char* filename) {
     //e lê um int para saber quantas chaves há na página
 	sscanf(pos, "%c%8d", &p->folha, &p->cntChave) ;
     //Avança no buffer
-	pos += INT_SIZE + CHAR_SIZE ;
+	pos += INT_TAM + CHAR_TAM ;
 
 	int i ;
 	for (i = 0; i < p->cntChave; i++) {
         //Lê todas as chaves e offsets
 		sscanf(pos, "%8d%15ld", &p->chaves[i].id, &p->chaves[i].offset) ;
-		pos += INT_SIZE + LONG_SIZE;
+		pos += INT_TAM + LONG_TAM;
 	}
 
 	if (p->folha == '0') {
         //Se a página não for folha, lê os filhos
 		for (i = 0; i <= p->cntChave; i++) {
 			sscanf(pos, "%8d", &p->filhos[i]) ;
-			pos += INT_SIZE ;
+			pos += INT_TAM ;
 		}
 	}
 
@@ -185,24 +185,24 @@ int writeBucket(bTree *bt, pagina *p, char* filename) {
         return 0 ;
     }
 
-    char *buffer = (char *) malloc(sizeof(char) * PAGE_SIZE) ;
+    char *buffer = (char *) malloc(sizeof(char) * PAGE_TAM) ;
     buffer[0] = '\0' ;
 
-    sprintf(buffer, "%s%c%0*d", buffer, p->folha, INT_SIZE, p->cntChave) ;
+    sprintf(buffer, "%s%c%0*d", buffer, p->folha, INT_TAM, p->cntChave) ;
 
     int i ;
     for (i = 0; i < p->cntChave; i++) {
-        sprintf(buffer, "%s%0*d%0*ld", buffer, INT_SIZE, p->chaves[i].id, LONG_SIZE, p->chaves[i].offset) ;
+        sprintf(buffer, "%s%0*d%0*ld", buffer, INT_TAM, p->chaves[i].id, LONG_TAM, p->chaves[i].offset) ;
     }
 
     if (p->folha == '0') {
         for (i = 0; i <= p->cntChave; i++) {
-        	sprintf(buffer, "%s%0*d", buffer, INT_SIZE, p->filhos[i]) ;
+        	sprintf(buffer, "%s%0*d", buffer, INT_TAM, p->filhos[i]) ;
         }
     }
 
     fseek(bt->bTFile, rrnToOffset(p->rrn), SEEK_SET) ;
-    fprintf(bt->bTFile, "%s%0*d", buffer, (int) (PAGE_SIZE - strlen(buffer)), 0) ;
+    fprintf(bt->bTFile, "%s%0*d", buffer, (int) (PAGE_TAM - strlen(buffer)), 0) ;
     fclose(bt->bTFile) ;
     free(buffer) ;
 
@@ -217,7 +217,7 @@ int updateHeader(bTree *bt, char* filename) {
         return 0 ;
     }
 
-    fprintf(bt->bTFile, "%0*d%0*d", INT_SIZE, bt->raiz, INT_SIZE, bt->nextRrn) ;
+    fprintf(bt->bTFile, "%0*d%0*d", INT_TAM, bt->raiz, INT_TAM, bt->nextRrn) ;
 
     fclose(bt->bTFile) ;
     return 1 ;

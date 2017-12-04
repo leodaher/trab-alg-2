@@ -4,28 +4,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
-// ORDEM - Quantidade máxima de filhos em um nó
+// Constantes importantes
 #define ORDEM 6
+#define LONG_TAM 15
+#define INT_TAM 8
+#define CHAVE_TAM INT_TAM + LONG_TAM
+#define CHAR_TAM 1
+#define PAGE_TAM (CHAR_TAM + INT_TAM + CHAVE_TAM * (ORDEM - 1) + LONG_TAM * ORDEM)
 
-//Tamnho de uma variável do tipo "long" no arquivo
-//Ex.: se l = 2003, no arquivo será "000000000002003"
-#define LONG_SIZE 15
-
-//Tamanho de uma variável do tipo "int" no arquivo
-//Ex.: se i = 3000, no arquivo será "00003000"
-#define INT_SIZE 8
-
-//Tamanho de cada chave no arquivo
-#define CHAVE_SIZE INT_SIZE + LONG_SIZE
-
-//Tamanho de uma variável do tipo "char" no arquivo
- #define CHAR_SIZE 1
-
-//Tamanho de cada página no arquivo
-//Organização: "[FOLHA][QUANTIDADE DE CHAVES][ID1][OFFSET1]..[IDN][OFFSETN][FILHO1]..[FILHON+1]"
-#define PAGE_SIZE (CHAR_SIZE + INT_SIZE + CHAVE_SIZE * (ORDEM - 1) + LONG_SIZE * ORDEM)
-
+// Nome do arquivo de índices
 #define BTFILE "arvore.idx"
 
 typedef long offset_t ;
@@ -36,7 +23,7 @@ typedef struct {
 } chave;
 
 typedef struct {
-    int rrn ;
+  int rrn ;
 	int cntChave ;
 	chave *chaves ;
 	int *filhos ;
@@ -50,64 +37,13 @@ typedef struct {
 	FILE *bTFile ;
 } bTree;
 
-/*
-	Nome: initBT
+// Inicializa a B-Tree
+int startBTree(bTree *bt, char* filename) ;
 
-	Parâmetros:
-		bt - ponteiro para bTree
-
-	Função: Inicializa as variáveis da árvore
-
-	Retorno:
-		1 - Sucesso
-		0 - Arquivo de indice não existe
-*/
-int initBT(bTree *bt, char* filename) ;
-
-
-/*
-	Nome: loadPage
-
-	Parâmetros:
-		bt - ponteiro para bTree
-		p - ponteiro para página
-		rrn - localização da página no arquivo
-
-	Função: Lê os dados do arquivo na posição especificada pelo
-	RRN e carrega para a memória principal no endereço apontado por p
-
-	Retorno:
-		1 - Sucesso
-		0 - Arquivo de indice não existe
-*/
-int loadPage(bTree *bt, pagina *p, int rrn) ;
-
-/*
-	Nome: printPage
-
-	Parâmetros:
-		p - ponteiro para página
-
-	Função: Imprime os dados da página p
-*/
-void printPage(pagina *p) ;
-
-/*
-	Nome: search
-
-	Parâmetros:
-		bt - ponteiro para bTree
-		id - ID a ser pesquisado
-
-	Função: Pesquisa o ID dado na árvore e retorna o
-	offset no arquivo de dados do registro correspondente
-
-	Retorno:
-		>= 0 - Sucesso
-		-1 - ID não encontrado
-*/
+// Pesquisa por um ID no arquivo de índices e retorna o offset
 long search(bTree *bt, int id, char* filename) ;
 
+// Insere uma chave no arquivo de índices
 int insert(bTree *bt, int id, long offset, char* filename, FILE * flog) ;
 
 #endif
