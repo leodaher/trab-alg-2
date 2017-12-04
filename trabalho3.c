@@ -130,7 +130,7 @@ void create_index_read (FILE* fidx, bTree *bt, char *filename) {
 		printf("Termino da leitura\n");
 		return;
 	}
-	long offset = ftell(fidx);
+	long offset = ftell(fidx)-1;
 	while (c != '|'){
 		tamStr[i] = c;
 		i++;
