@@ -60,24 +60,28 @@ static void print_reg(registro_t *reg) {
 		   reg->genero);
 }
 
-static void search_musica(FILE *fdata, bTree *bt, char* filename)
+static void search_musica(FILE *fdata, bTree *bt, char* filename, FILE *flog)
 {
 	int id ;
 	printf("Informe o id da música a ser pesquisada: ");
 	scanf("%d%*c", &id);
 
+	fprintf(flog, "Execucao de operacao de PESQUISA de <%d>\n", id);
+
 	long offset = search(bt, id, filename) ;
 	if (offset == -1) {
 		printf("Música não existente!\n");
+		fprintf(flog, "“Chave <%d> nao encontrada\n", id);
 		return ;
 	}
 
 	registro_t reg ;
 	if (!file_to_reg(&reg, offset, fdata)) {
 		printf("Música não existente!\n");
+		fprintf(flog, "“Chave <%d> nao encontrada\n", id);
 		return ;
 	}
-
+	fprintf(flog, "Chave <%d> encontrada, offset <%ld>, Titulo: <%s>, Genero: <%s>\n", reg.id, offset, reg.titulo, reg.genero);
 	print_reg(&reg) ;
 }
 
@@ -198,7 +202,7 @@ static int ui(FILE* fdata, bTree *bt, char* filename, FILE *flog)
 			remove_musica(fdata, bt, filename);
 			break;
 		case 3:
-			search_musica(fdata, bt, filename);
+			search_musica(fdata, bt, filename, flog);
 			break;
 		case 4:
 			create_index(flog);
