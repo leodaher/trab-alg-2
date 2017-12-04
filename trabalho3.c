@@ -146,8 +146,7 @@ void create_index_read (FILE* fidx, bTree *bt, char *filename) {
 	strcpy(reg.titulo, strtok(NULL, s));
 	strcpy(reg.genero, strtok(NULL, s));
 
-	printf("\n    tam = %d\n", tam);
-	printf("    id = %d\n    titulo = %s\n    genero = %s\n\n", reg.id, reg.titulo, reg.genero);
+	printf("\n    tam = %d\n    id = %d\n    titulo = %s\n    genero = %s\n\n",tam, reg.id, reg.titulo, reg.genero);
 
 	c = fgetc(fidx);
 	
@@ -160,7 +159,7 @@ void create_index_read (FILE* fidx, bTree *bt, char *filename) {
 
 void create_index () {
 	char filename[20];
-	printf("Insira o nome do arquivo: ");
+	printf("Insira o nome do arquivo de dados: ");
 	scanf("%s", filename);
 	bTree btidx;
 
