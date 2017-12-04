@@ -12,7 +12,6 @@
 
 #include <string.h>
 
-void printBucket(pagina *p) ;
 
 int initBT(bTree *bt, char* filename) {
 	bt->ordem = ORDEM ;
@@ -220,37 +219,6 @@ int writeBucket(bTree *bt, pagina *p, char* filename) {
     return 1 ;
 }
 
-void printBucket(pagina *p) {
-	if (p->cntChave == 0) {
-		return ;
-	}
-
-	printf("Folha: %s\n"
-		   "Quantidade de chaves: %d\n"
-		   , p->folha == '1' ? "Sim" : "Não", p->cntChave);
-	printf("IDs: \n") ;
-	int i ;
-	for (i = 0; i < p->cntChave; i++) {
-		printf("%7d ", p->chaves[i].id) ;
-	}
-
-	printf("\nOffsets: \n") ;
-	for (i = 0; i < p->cntChave; i++) {
-		printf("%7ld ", p->chaves[i].offset) ;
-	}
-	printf("\n");
-
-	if (p->folha == '1') {
-		return ;
-	}
-
-	printf("Filhos: \n") ;
-	for (i = 0; i <= p->cntChave; i++) {
-		printf("%7d ", p->filhos[i]) ;
-	}
-
-	printf("\n");
-}
 
 int updateHeader(bTree *bt, char* filename) {
 	bt->bTFile = fopen(filename, "r+") ;
