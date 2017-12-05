@@ -9,7 +9,6 @@ int searchRec(bTree *bt, pagina *p, chave *c, char* filename) {
 	while (i < p->cntChave && p->chaves[i].id < c->id) {
 		i++ ;
 	}
-
 	if (p->chaves[i].id == c->id) {
 		c->offset = p->chaves[i].offset ;
 		return 1 ;
@@ -25,19 +24,14 @@ long search(bTree *bt, int id, char* filename) {
 	if (bt->raiz == -1) {
 		return -1 ;
 	}
-
 	pagina p ;
 	chave c ;
 	c.id = id ;
-
 	loadPage(bt, &p, bt->raiz, filename) ;
 
 	if (!searchRec(bt, &p, &c, filename)) {
 		freePage(&p) ;
 		return -1 ;
 	}
-
-
 	return c.offset ;
-
 }
