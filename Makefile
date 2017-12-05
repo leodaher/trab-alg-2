@@ -1,5 +1,5 @@
 all: trabalho3.c
-	gcc btree.c trabalho3.c -o t3
+	gcc trabalho3.c btree_search.c btree_insertion.c btree_create.c -o t3
 
 run: all
 	./t3

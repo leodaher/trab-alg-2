@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "btree_search.h"
 #include "btree.h"
+#include "btree_create.h"
 
 int searchRec(bTree *bt, pagina *p, chave *c, char* filename) {
 	int i = 0 ;

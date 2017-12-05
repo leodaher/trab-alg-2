@@ -1,7 +1,9 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "btree.h"
-
-
-
+#include "btree_search.h"
+#include "btree_create.h"
 
 int wrPage(bTree *bt, pagina *p, char* filename) {
     bt->bTFile = fopen(filename, "r+") ;
