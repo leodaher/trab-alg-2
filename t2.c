@@ -234,7 +234,7 @@ int main(void)
 	char *filename = BTFILE;
 	startBTree(&bt, filename);
 
-	flog = fopen("log_ldaher.txt", "a");
+	flog = fopen("log_cfranco.txt", "a");
 
 	err = openFile(DATA_FILE, &fdata);
 	if(err) return err;
