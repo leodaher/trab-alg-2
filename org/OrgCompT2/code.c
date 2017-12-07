@@ -23,7 +23,7 @@ void somador_completo (char a, char b, char cin, char* s, char* cout)
 // Faz a soma de 32 bits
 void soma (int a, int b, int* s, char* overflow)
 {
-    // Iterador para calcu.lar a soma de cada bit
+    // Iterador para calcular a soma de cada bit
     int i;
     // Saida auxiliar (para resultado de cada soma de bits)
     char s_aux;
@@ -51,7 +51,7 @@ void soma (int a, int b, int* s, char* overflow)
 // Logo, basta inicializar c (cin) como 1 e inverter os bits de b, e realizar a soma
 void subtracao (int a, int b, int* s, char* overflow)
 {
-    // Iterador para calcu.lar a subtracao de cada bit
+    // Iterador para calcular a subtracao de cada bit
     int i;
     // Saida auxiliar (para resultado de cada soma de bits)
     char s_aux;
@@ -79,7 +79,7 @@ void subtracao (int a, int b, int* s, char* overflow)
 // Faz um AND de 32 bits
 void and (int a, int b, int* s, char* overflow)
 {
-    // Iterador para calcu.lar o AND de cada bit
+    // Iterador para calcular o AND de cada bit
     int i;
     // Inicializa o resultado como zero
     (*s)=0;
@@ -100,7 +100,7 @@ void and (int a, int b, int* s, char* overflow)
 // Faz um OR de 32 bits
 void or (int a, int b, int* s, char* overflow)
 {
-    // Iterador para calcu.lar o OR de cada bit
+    // Iterador para calcular o OR de cada bit
     int i;
     // Inicializa o resultado como zero
     (*s)=0;
