@@ -27,7 +27,8 @@
 /* Students, you are required to implemented the functions bellow.
    Please, refere to cpu.h for further information. */
 
-
+#include "mask.h"
+#include "cpu.h"
 
 // Somador completo para 1 bit
 void somador_completo (char a, char b, char cin, char* s, char* cout)
@@ -169,6 +170,54 @@ int alu( int a, int b, char alu_op, int * result_alu, char * zero, char * overfl
 }
 
 
+void TabelaDespacho1 (int IR, char* sequenciamento)
+{
+    int Op;
+    // Separa o codigo de operacao
+    Op = (IR&separa_cop)>>26;
+    char ROM[5];
+    // ROM com os dados gravados, com a saida da tabela de despacho
+    ROM[0]=0x6; //0b0110
+    ROM[1]=0x9; //0b1001
+    ROM[2]=0x8; //0b1000
+    ROM[3]=0x2; //0b0010
+    ROM[4]=0x2; //0b0010
+    // Se o codigo de operacao for 000000 (formato R), muda o sequenciamento para o valor de ROM[0]
+    if (Op==0x00) //0b000000
+        (*sequenciamento) = ROM[0];
+    // Se o codigo de operacao for 000010 (jmp), muda o sequenciamento para o valor de ROM[1]
+    if (Op==0x02) //0b000010
+        (*sequenciamento) = ROM[1];
+    // Se o codigo de operacao for 000100 (beq), muda o sequenciamento para o valor de ROM[2]
+    if (Op==0x04) //0b000100
+        (*sequenciamento) = ROM[2];
+    // Se o codigo de operacao for 100011 (lw), muda o sequenciamento para o valor de ROM[3]
+    if (Op==0x23) //0b100011
+        (*sequenciamento) = ROM[3];
+    // Se o codigo de operacao for 101011 (sw), muda o sequenciamento para o valor de ROM[4]
+    if (Op==0x2B) //0b101011
+        (*sequenciamento) = ROM[4];
+}
+
+
+void TabelaDespacho2 (int IR, char* sequenciamento)
+{
+    int Op;
+    // Separa o codigo de operacao
+    Op = (IR&separa_cop)>>26;
+    char ROM[2];
+    // ROM com os dados gravados, com a saida da tabela de despacho
+    ROM[0]=0x3; //0b0011
+    ROM[1]=0x5; //0b0101
+    // Se o codigo de operacao for 100011 (lw), muda o sequenciamento para o valor de ROM[0]
+    if (Op==0x23) //0b100011
+        (*sequenciamento) = ROM[0];
+    // Se o codigo de operacao for 101011 (sw), muda o sequenciamento para o valor de ROM[1]
+    if (Op==0x2B) //0b101011
+        (*sequenciamento) = ROM[1];
+}
+
+
 void control_unit(int IR, short int *sc)
 {
     static char s=0;
@@ -204,6 +253,35 @@ void control_unit(int IR, short int *sc)
         loop=0;
 }
 
+void ULA_Control (short int sc, int IR, char* ula_op)
+{
+    // Se o ALUOp for 00, entao ula_op = 0010 (soma)
+    if (!(sc&separa_ALUOp1) && !(sc&separa_ALUOp0))
+        (*ula_op) = 0x2; //0b0010
+    // Se o ALUOp for 01, entao ula_op = 0110 (subtracao)
+    if (!(sc&separa_ALUOp1) && (sc&separa_ALUOp0))
+        (*ula_op) = 0x6; //0b0110
+    // Se o ALUOp for 10, entao ula_op depende do campo de funcao
+    if ((sc&separa_ALUOp1) && !(sc&separa_ALUOp0))
+    {
+        // Se for soma
+        if ((IR&separa_cfuncao)==0x20)
+            (*ula_op) = 0x2; //0b0010
+        // Se for subtracao
+        if ((IR&separa_cfuncao)==0x22)
+            (*ula_op) = 0x6; //0b0110
+        // Se for AND
+        if ((IR&separa_cfuncao)==0x24)
+            (*ula_op) = 0x0; //0b0000
+        // Se for OR
+        if ((IR&separa_cfuncao)==0x25)
+            (*ula_op) = 0x1; //0b0001
+        // Se for SLT
+        if ((IR&separa_cfuncao)==0x2a)
+            (*ula_op) = 0x7; //0b0111
+    }
+}
+
 
 void instruction_fetch(short int sc, int PC, int ALUOUT, int IR, int* PCnew, int* IRnew, int* MDRnew)
 {
@@ -228,7 +306,7 @@ void instruction_fetch(short int sc, int PC, int ALUOUT, int IR, int* PCnew, int
     {
         // Determina o codigo e faz a operacao aritmetica
         ULA_Control(sc, IR, &ula_op_aux);
-        ula(ULA_entrada1, ULA_entrada2, ula_op_aux, &ALUOUT, &zero, &overflow);
+        alu(ULA_entrada1, ULA_entrada2, ula_op_aux, &ALUOUT, &zero, &overflow);
     }
     
     /* === Mudanca do PC === */
@@ -250,7 +328,7 @@ void instruction_fetch(short int sc, int PC, int ALUOUT, int IR, int* PCnew, int
     
     // Se MemRead = 1, le o endereco de memoria
     if (sc&separa_MemRead)
-        MemData = memoria[Address/4];
+        MemData = memory[Address/4];
     
     // Muda, em todos os ciclos, o valor de MDR
     // (Caso esteja no caso contemplado por essa funcao)
@@ -305,7 +383,7 @@ void decode_register(short int sc, int IR, int PC, int A, int B, int *Anew, int 
     {
         // Determina o codigo e faz a operacao aritmetica
         ULA_Control(sc, IR, &ula_op_aux);
-        ula(ULA_entrada1, ULA_entrada2, ula_op_aux, ALUOUTnew, &zero, &overflow);
+        alu(ULA_entrada1, ULA_entrada2, ula_op_aux, ALUOUTnew, &zero, &overflow);
     }
 }
 
@@ -345,7 +423,7 @@ void exec_calc_end_branch(short int sc, int A, int B, int IR, int PC, int ALUOUT
     {
         // Determina o codigo e faz a operacao aritmetica
         ULA_Control(sc, IR, &ula_op_aux);
-        ula(ULA_entrada1, ULA_entrada2, ula_op_aux, ALUOUTnew, &zero, &overflow);
+        alu(ULA_entrada1, ULA_entrada2, ula_op_aux, ALUOUTnew, &zero, &overflow);
     }
     
     /* === Mudanca do PC === */
@@ -366,7 +444,7 @@ void exec_calc_end_branch(short int sc, int A, int B, int IR, int PC, int ALUOUT
 }
 
 
-void write_r_access_memory(short int sc, int B, int IR, int ALUOUT, int PC, int *MDRnew, int *IRnew);
+void write_r_access_memory(short int sc, int B, int IR, int ALUOUT, int PC, int *MDRnew, int *IRnew)
 {
       // Variaveis representando entradas/saidas dos circuitos
     int Address=0;
@@ -381,7 +459,7 @@ void write_r_access_memory(short int sc, int B, int IR, int ALUOUT, int PC, int 
     
     // Se MemRead = 1, le o endereco de memoria
     if (sc&separa_MemRead)
-        MemData=memoria[Address/4];
+        MemData=memory[Address/4];
     
     // Muda, em todos os ciclos, o valor de MDR
     // (Caso esteja no caso contemplado por essa funcao)
@@ -393,7 +471,7 @@ void write_r_access_memory(short int sc, int B, int IR, int ALUOUT, int PC, int 
         // (Caso esteja no caso contemplado por essa funcao)
         if (sc&separa_IorD)
             // Atualiza o valor de MemData (memoria[Address/4])
-            memoria[Address/4] = B;
+            memory[Address/4] = B;
     
     
     // Se RegDest estiver em 1, muda o destino do dado para o valor em rd [15:11]
