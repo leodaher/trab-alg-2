@@ -1,31 +1,12 @@
-/* code-c - Student's code for mmcpu
-
-   Copyright 2017  Monaco F. J.   <monaco@icmc.usp.br>
-
-   This file is part of Muticlycle Mips CPU (MMCPU)
-
-   MMCPU is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+/*
+Integrantes: 
+    Carlos Henrique de Oliveira Franco (Nº USP: 9771608)
+    Guilherme Brunassi Nogima (Nº USP: 9771629)
+    João Pedro Silva Mambrini Ruiz (Nº USP: 9771675) 
+    Leonardo Akel Daher (Nº USP: 9771682)
 */
-
-
-/* After you have implemented your functions, you may safely remove these lines. */
 #include <stdio.h>
 #include <stdlib.h>
-#define not_implemented() fprintf(stderr, "Not implemented\n"); exit(EXIT_FAILURE)
-
-/* Students, you are required to implemented the functions bellow.
-   Please, refere to cpu.h for further information. */
 
 #include "mask.h"
 #include "cpu.h"
